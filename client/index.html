@@ -12,8 +12,11 @@
 <div id="imgDiv2"></div>
 <input id="sendImgbase64" value="sendImage(base64的方式)" type="button" onclick="sendImgbase64()"/><br><br>
 <div id="imgDiv3"></div>
+<input id="tranBinaryToByteString" value="将二进制流数据转化为比特字节" type="button" onclick="tranBinaryToByteString()"/><br><br>
 <div id="log"></div>
 <script>
+    // 是否只转化为字节字符串
+    var doTranBinaryToByteString = false;
     var log = function(str){
         console.log(str);
         document.body.innerHTML = document.body.innerHTML + '<hr><p>' + str + '</p>';
@@ -65,16 +68,32 @@
                         break;
                 }
             }else {
-                // 二进制流的方式
-                var reader = new FileReader();
-                reader.onload = function(evt){
-                    if(evt.target.readyState == FileReader.DONE){
-                        var url = evt.target.result;
-                        var img = document.getElementById("imgDiv2");
-                        img.innerHTML = "<img src = " + url + " />";
-                    }
-                };
-                reader.readAsDataURL(event.data);
+                if(doTranBinaryToByteString){
+                    // 不转化为图片，而是转化为 字节字符串
+                    doTranBinaryToByteString = false;
+                    var reader = new FileReader();
+                    reader.onload = function(evt){
+                        if(evt.target.readyState == FileReader.DONE){
+                            var data = new Uint8Array(evt.target.result);
+                            // 转化为真正的数组
+                            data = [].slice.call(data,0);
+                            log("转化为字节字符串为==>" + JSON.stringify(data));
+                         }
+                     };
+                    reader.readAsArrayBuffer(event.data);
+                }else{
+                    // 转化为图片
+                    // 二进制流的方式
+                    var reader = new FileReader();
+                    reader.onload = function(evt){
+                        if(evt.target.readyState == FileReader.DONE){
+                            var url = evt.target.result;
+                            var img = document.getElementById("imgDiv2");
+                            img.innerHTML = "<img src = " + url + " />";
+                        }
+                    };
+                    reader.readAsDataURL(event.data);
+                }
             }
         };
         // 监听Socket的关闭
@@ -107,6 +126,14 @@
         // 接收图片的二进制信息（转化为base64格式）
         socket.send(JSON.stringify({
             action: 4
+        }));
+    };
+
+    var tranBinaryToByteString = function(){
+        // 将二进制流转化为比特字节字符串
+        doTranBinaryToByteString = true;
+        socket.send(JSON.stringify({
+            action: 3
         }));
     }
 </script>
