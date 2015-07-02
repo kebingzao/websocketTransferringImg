@@ -1,7 +1,7 @@
 <!DOCTYPE>
 <html>
 <head>
-    <title>将二进制流转化为字符串</title>
+    <title>将比特字节字符串转化为字符串</title>
     <meta charset="UTF-8">
 
     <script type="application/javascript">
@@ -28,25 +28,8 @@
                 var str = $("str").value;
                 // 转化为字节数组
                 var arr = str.split(",");
-
-                // 转化为二进制格式
-                var uint8Array  = new Uint8Array(arr);
-                var arrayBuffer = uint8Array.buffer;
-                var blob        = new Blob([arrayBuffer]);
-
-
-                var reader = new FileReader();
-                reader.onload = function(evt){
-                    if(evt.target.readyState == FileReader.DONE){
-                        var data = new Uint8Array(evt.target.result);
-                        $("value").innerHTML = bin2String(data);
-                    }
-                };
-                reader.readAsArrayBuffer(blob);
-
-
-//                // 将字节数组转化为字符串
-//                $("value").innerHTML = bin2String(arr);
+                // 将字节数组转化为字符串
+                $("value").innerHTML = bin2String(arr);
             }
         }
     </script>
