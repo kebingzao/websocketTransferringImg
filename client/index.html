@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>使用websocket接收服务端传过来的二进制图片</title>
+</head>
+<body>
+<input id="msg" type="text" placeholder="发送消息给服务端"/>
+<input id="send" value="send" type="button" onclick="send()"/><br><br>
+<input id="sendImg" value="sendImage(二进制文本的方式)" type="button" onclick="sendImage()"/><br><br>
+<div id="imgDiv"></div>
+<div id="log"></div>
+<script>
+    var log = function(str){
+        console.log(str);
+        document.body.innerHTML = document.body.innerHTML + '<hr><p>' + str + '</p>';
+    };
+
+    // 创建一个Socket实例
+    var socket = new WebSocket('ws://localhost:3001');
+
+    // 打开Socket
+    socket.onopen = function(event) {
+        // 发送一个初始化消息
+        socket.send(JSON.stringify({
+            action:1,
+            data: 'I am the client and I\'m listening!'
+        }));
+        // 监听消息
+        socket.onmessage = function(event) {
+            var data = JSON.parse(event.data);
+            switch(data.action){
+                // 文本格式
+                case 1:
+                    log(event.data);
+                    break;
+                // 二进制资源的文本格式
+                case 2:
+                    log(event.data);
+                    var obj = JSON.parse(data.data);
+                    // 转化为二进制格式
+                    var uint8Array  = new Uint8Array(obj.data);
+                    var arrayBuffer = uint8Array.buffer;
+                    var blob        = new Blob([arrayBuffer]);
+                    var reader = new FileReader();
+                    reader.onload = function(evt){
+                        if(evt.target.readyState == FileReader.DONE){
+                            var url = evt.target.result;
+                            var img = document.getElementById("imgDiv");
+                            img.innerHTML = "<img src = " + url + " />";
+                        }
+                    };
+                    reader.readAsDataURL(blob);
+                    break;
+            }
+        };
+        // 监听Socket的关闭
+        socket.onclose = function(event) {
+            log(event.data);
+        };
+    };
+    // 发送文字信息
+    var send = function(){
+        // 传递纯文本信息
+        socket.send(JSON.stringify({
+            action: 1,
+            data: document.getElementById("msg").value
+        }));
+    };
+    // 让服务端发送一张图片过来
+    var sendImage = function(){
+        // 接收图片的二进制信息（转化为文本的方式）
+        socket.send(JSON.stringify({
+            action: 2
+        }));
+    }
+</script>
+</body>
+</html>
