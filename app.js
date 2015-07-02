@@ -44,7 +44,16 @@ server.on('upgrade', function(request, socket, body) {
                     break;
                 case 3:
                     // 二进制流的方式
-                    ws.send(fs.readFileSync(__dirname + "/images/1.jpg"));
+                    ws.send(fs.readFileSync(__dirname + "/images/2.png"));
+                    break;
+                case 4:
+                    // 转化为base64 返回
+                    var bitmap = fs.readFileSync(__dirname + "/images/3.png");
+                    // 转化为16进制
+                    ws.send(JSON.stringify({
+                        action: data.action,
+                        data: new Buffer(bitmap).toString("base64")
+                    }));
                     break;
             }
         });

@@ -8,8 +8,10 @@
 <input id="send" value="send" type="button" onclick="send()"/><br><br>
 <input id="sendImg" value="sendImage(二进制文本的方式)" type="button" onclick="sendImage()"/><br><br>
 <div id="imgDiv"></div>
-<input id="sendImgStream" value="sendImage(二进制流文本的方式)" type="button" onclick="sendImgStream()"/><br><br>
+<input id="sendImgStream" value="sendImage(二进制流的方式)" type="button" onclick="sendImgStream()"/><br><br>
 <div id="imgDiv2"></div>
+<input id="sendImgbase64" value="sendImage(base64的方式)" type="button" onclick="sendImgbase64()"/><br><br>
+<div id="imgDiv3"></div>
 <div id="log"></div>
 <script>
     var log = function(str){
@@ -55,6 +57,12 @@
                         };
                         reader.readAsDataURL(blob);
                         break;
+                    case 4:
+                        log(event.data);
+                        // base64编码的方式
+                        var img = document.getElementById("imgDiv3");
+                        img.innerHTML = "<img src = 'data:;base64," + data.data + "' />";
+                        break;
                 }
             }else {
                 // 二进制流的方式
@@ -93,6 +101,12 @@
         // 接收图片的二进制信息（转化为二进制流的方式）
         socket.send(JSON.stringify({
             action: 3
+        }));
+    };
+    var sendImgbase64 = function(){
+        // 接收图片的二进制信息（转化为base64格式）
+        socket.send(JSON.stringify({
+            action: 4
         }));
     }
 </script>
