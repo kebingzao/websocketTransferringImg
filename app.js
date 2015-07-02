@@ -24,6 +24,10 @@ server.on('upgrade', function(request, socket, body) {
                 case 1:
                     // 文本信息，原样返回
                     msg = "server return ==>: " + data.data;
+                    ws.send(JSON.stringify({
+                        action: data.action,
+                        data: msg
+                    }));
                     break;
                 case 2:
                     // 请求图片信息，二进制文本格式
@@ -33,12 +37,16 @@ server.on('upgrade', function(request, socket, body) {
                     var json = JSON.stringify(buf);
                     console.log(json);
                     msg = json;
+                    ws.send(JSON.stringify({
+                        action: data.action,
+                        data: msg
+                    }));
+                    break;
+                case 3:
+                    // 二进制流的方式
+                    ws.send(fs.readFileSync(__dirname + "/images/1.jpg"));
                     break;
             }
-            ws.send(JSON.stringify({
-                action: data.action,
-                data: msg
-            }))
         });
 
         ws.on('close', function(event) {
