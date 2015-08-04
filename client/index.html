@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>使用websocket接收服务端传过来的二进制图片</title>
+    <script src="tlv.js"></script>
 </head>
 <body>
 <input id="msg" type="text" placeholder="发送消息给服务端"/>
@@ -13,8 +14,23 @@
 <input id="sendImgbase64" value="sendImage(base64的方式)" type="button" onclick="sendImgbase64()"/><br><br>
 <div id="imgDiv3"></div>
 <input id="tranBinaryToByteString" value="将二进制流数据转化为比特字节" type="button" onclick="tranBinaryToByteString()"/><br><br>
+<div id="imgDiv4"></div>
+<input id="tranTVLToString" value="将TLV数据转化为字符串" type="button" onclick="tranTVLToString()"/><br><br>
+<input id="tranBinary" value="传二进制给服务端" type="button" onclick="tranBinary()"/><br><br>
 <div id="log"></div>
 <script>
+    // 将字符串转为字节数组
+    function string2Bin(str) {
+        var result = [];
+        for (var i = 0; i < str.length; i++) {
+            result.push(str.charCodeAt(i));
+        }
+        return result;
+    }
+    // 将字节数组转为字符串
+    function bin2String(array) {
+        return String.fromCharCode.apply(String, array);
+    }
     // 是否只转化为字节字符串
     var doTranBinaryToByteString = false;
     var log = function(str){
@@ -65,6 +81,18 @@
                         // base64编码的方式
                         var img = document.getElementById("imgDiv3");
                         img.innerHTML = "<img src = 'data:;base64," + data.data + "' />";
+                        break;
+                    case 5:
+                        log(event.data);
+                        var obj = JSON.parse(data.data);
+                        var hexStr = "";
+                        // 转化为16进制的字符串
+                        for(var i in obj.data){
+                            hexStr +=obj.data[i].toString(16);
+                        }
+                        log(hexStr);
+                        var decoder = new TLVDecoder();
+                        decoder.parseTLV(hexStr);
                         break;
                 }
             }else {
@@ -135,7 +163,21 @@
         socket.send(JSON.stringify({
             action: 3
         }));
-    }
+    };
+
+    var tranTVLToString = function(){
+        // 将tlv数据格式转化为字符串
+        socket.send(JSON.stringify({
+            action: 5
+        }));
+    };
+
+    var tranBinary = function(){
+        var str = "hello world";
+        // 转化为二进制格式
+        var uint8Array  = new Uint8Array(string2Bin(str));
+        socket.send(uint8Array);
+    };
 </script>
 </body>
 </html>

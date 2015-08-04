@@ -1,6 +1,8 @@
 var WebSocket = require('faye-websocket'),
         fs = require('fs'),
+        tlv = require('tlv'),
         http      = require('http');
+
 
 var server = http.createServer();
 
@@ -18,43 +20,60 @@ server.on('upgrade', function(request, socket, body) {
         });
 
         ws.on('message', function(event) {
-            var data = JSON.parse(event.data);
-            var msg = '';
-            switch (data.action){
-                case 1:
-                    // 文本信息，原样返回
-                    msg = "server return ==>: " + data.data;
-                    ws.send(JSON.stringify({
-                        action: data.action,
-                        data: msg
-                    }));
-                    break;
-                case 2:
-                    // 请求图片信息，二进制文本格式
-                    // 发送一张本地图片过去
-                    var bitmap = fs.readFileSync(__dirname + "/images/1.jpg");
-                    var buf = new Buffer(bitmap);
-                    var json = JSON.stringify(buf);
-                    console.log(json);
-                    msg = json;
-                    ws.send(JSON.stringify({
-                        action: data.action,
-                        data: msg
-                    }));
-                    break;
-                case 3:
-                    // 二进制流的方式
-                    ws.send(fs.readFileSync(__dirname + "/images/2.png"));
-                    break;
-                case 4:
-                    // 转化为base64 返回
-                    var bitmap = fs.readFileSync(__dirname + "/images/3.png");
-                    // 转化为16进制
-                    ws.send(JSON.stringify({
-                        action: data.action,
-                        data: new Buffer(bitmap).toString("base64")
-                    }));
-                    break;
+            if(typeof event.data === "string") {
+                var data = JSON.parse(event.data);
+                var msg = '';
+                switch (data.action) {
+                    case 1:
+                        // 文本信息，原样返回
+                        msg = "server return ==>: " + data.data;
+                        ws.send(JSON.stringify({
+                            action: data.action,
+                            data: msg
+                        }));
+                        break;
+                    case 2:
+                        // 请求图片信息，二进制文本格式
+                        // 发送一张本地图片过去
+                        var bitmap = fs.readFileSync(__dirname + "/images/1.jpg");
+                        var buf = new Buffer(bitmap);
+                        var json = JSON.stringify(buf);
+                        console.log(json);
+                        msg = json;
+                        ws.send(JSON.stringify({
+                            action: data.action,
+                            data: msg
+                        }));
+                        break;
+                    case 3:
+                        // 二进制流的方式
+                        ws.send(fs.readFileSync(__dirname + "/images/2.png"));
+                        break;
+                    case 4:
+                        // 转化为base64 返回
+                        var bitmap = fs.readFileSync(__dirname + "/images/3.png");
+                        // 转化为16进制
+                        ws.send(JSON.stringify({
+                            action: data.action,
+                            data: new Buffer(bitmap).toString("base64")
+                        }));
+                        break;
+                    case 5:
+                        // 转化为tlv数据 返回
+                        var bitmap = fs.readFileSync(__dirname + "/images/3.png");
+                        var tlvstr = tlv.parse(new Buffer(bitmap));
+
+                        // 转化为16进制
+                        ws.send(JSON.stringify({
+                            action: data.action,
+                            data: JSON.stringify(tlvstr.value)
+                        }));
+                        break;
+                }
+            }else{
+                console.log("二进制传过来");
+                // 然后转化为字符串
+                console.log(new Buffer(event.data).toString());
             }
         });
 
